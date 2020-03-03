@@ -1,6 +1,8 @@
 import os
 import numpy as np
+import matplotlib.pyplot as plt
 from astropy import units, constants
+from scipy import interpolate
 
 
 # ...
@@ -99,20 +101,14 @@ class FFT_Transformer(object):
             raise ValueError
         elif self.interpolator == "RegularGridInterpolator":
             real_interp = interpolate.RegularGridInterpolator(
-                (
-                    self.u_fft,
-                    self.v_fft
-                ),
+                (self.u_fft, self.v_fft),
                 z_fft_shifted.real.T,
                 method="linear",
                 bounds_error=False,
                 fill_value=0.0
             )
             imag_interp = interpolate.RegularGridInterpolator(
-                (
-                    self.u_fft,
-                    self.v_fft
-                ),
+                (self.u_fft, self.v_fft),
                 z_fft_shifted.imag.T,
                 method="linear",
                 bounds_error=False,
@@ -175,6 +171,18 @@ if __name__ == "__main__":
         ),
         sub_size=1
     )
+    n_pixels_FFT = 2048
+    grid_FFT = al.grid.uniform(
+        shape_2d=(
+            n_pixels_FFT,
+            n_pixels_FFT
+        ),
+        pixel_scales=(
+            pixel_scale,
+            pixel_scale
+        ),
+        sub_size=1
+    )
 
 
     # ...
@@ -188,7 +196,72 @@ if __name__ == "__main__":
         np.linspace(v_min, v_max, N),
     ]).T
 
-    # create a FFT_transformer object
-    transformer = FFT_Transformer(
-        uv_wavelengths=uv_wavelengths, grid=grid
+    # ...
+    lens_galaxy = al.Galaxy(
+        redshift=0.5,
+        mass=al.mp.EllipticalIsothermal(
+            centre=(
+                -0.05,
+                0.1),
+            axis_ratio=0.8,
+            phi=120.0,
+            einstein_radius=1.0
+        ),
     )
+    source_galaxy = al.Galaxy(
+        redshift=2.0,
+        light=al.lp.EllipticalGaussian(
+            centre=(
+                0.0,
+                0.0),
+            axis_ratio=0.75,
+            phi=40.0,
+            intensity=1.0,
+            sigma=0.1
+        ),
+    )
+    tracer = al.Tracer.from_galaxies(
+        galaxies=[
+            lens_galaxy,
+            source_galaxy
+        ]
+    )
+    image = tracer.profile_image_from_grid(
+        grid=grid
+    )
+
+
+    # ...
+    transformer = al.transformer(
+        uv_wavelengths=uv_wavelengths, grid_radians=grid.in_radians, preload_transform=False
+    )
+    real_visibilities__from__transformer = transformer.real_visibilities_from_image(image=image)
+    imag_visibilities__from__transformer = transformer.imag_visibilities_from_image(image=image)
+
+    # create a FFT_transformer object
+    FFT_transformer_obj = FFT_Transformer(
+        uv_wavelengths=uv_wavelengths, grid=grid_FFT
+    )
+    image_FFT = tracer.profile_image_from_grid(
+        grid=grid_FFT
+    )
+    real_visibilities, imag_visibilities = FFT_transformer_obj.visibilities_from_image(image_in_2d=image_FFT.in_2d)
+
+    plt.figure()
+    plt.plot(
+        real_visibilities__from__transformer,
+        imag_visibilities__from__transformer,
+        linestyle="None",
+        marker="o",
+        markersize=10,
+        color="b"
+    )
+    plt.plot(
+        real_visibilities,
+        imag_visibilities,
+        linestyle="None",
+        marker="o",
+        markersize=5,
+        color="r"
+    )
+    plt.show()
