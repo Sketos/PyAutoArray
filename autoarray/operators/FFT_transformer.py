@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 from astropy import units, constants
 from scipy import interpolate
 
+# ...
+autolens_version = "0.40.0"
 
 # ...
 if os.environ["HOME"] == "/Users/ccbh87":
@@ -14,13 +16,14 @@ elif os.environ["HOME"] == "/cosma/home/durham/dc-amvr1":
     COSMA_DATA = os.environ["COSMA7_DATA_host"]
 
 # ...
-workspace_path = COSMA_DATA + "/workspace"
+workspace_HOME_path = COSMA_HOME + "/workspace"
+workspace_DATA_path = COSMA_DATA + "/workspace"
 
 # ...
 import autofit as af
 af.conf.instance = af.conf.Config(
-    config_path = workspace_path + "/config",
-    output_path = workspace_path + "/output")
+    config_path=workspace_DATA_path + "/config" + "_" + autolens_version,
+    output_path=workspace_DATA_path + "/output")
 import autolens as al
 
 
@@ -124,32 +127,32 @@ class FFT_Transformer(object):
         return real_visibilities, imag_visibilities
 
 
-    # def transformed_mapping_matrices_from_mapping_matrix(self, mapping_matrix):
-    #     """
-    #     ...
-    #     """
-    #
-    #     real_transfomed_mapping_matrix = np.zeros(
-    #         (self.uv_wavelengths.shape[0], mapping_matrix.shape[1])
-    #     )
-    #     imag_transfomed_mapping_matrix = np.zeros(
-    #         (self.uv_wavelengths.shape[0], mapping_matrix.shape[1])
-    #     )
-    #
-    #     for source_pixel_1d_index in range(mapping_matrix.shape[1]):
-    #         image = mapping_matrix[:, source_pixel_1d_index].reshape(
-    #             self.grid.shape_2d[0],
-    #             self.grid.shape_2d[1]
-    #         )
-    #
-    #         real_visibilities, imag_visibilities = self.visibilities_from_image(
-    #             image_in_2d=image
-    #         )
-    #
-    #         real_transfomed_mapping_matrix[:, source_pixel_1d_index] = real_visibilities
-    #         imag_transfomed_mapping_matrix[:, source_pixel_1d_index] = imag_visibilities
-    #
-    #     return [real_transfomed_mapping_matrix, imag_transfomed_mapping_matrix]
+    def transformed_mapping_matrices_from_mapping_matrix(self, mapping_matrix):
+        """
+        ...
+        """
+
+        real_transfomed_mapping_matrix = np.zeros(
+            (self.uv_wavelengths.shape[0], mapping_matrix.shape[1])
+        )
+        imag_transfomed_mapping_matrix = np.zeros(
+            (self.uv_wavelengths.shape[0], mapping_matrix.shape[1])
+        )
+
+        for source_pixel_1d_index in range(mapping_matrix.shape[1]):
+            image = mapping_matrix[:, source_pixel_1d_index].reshape(
+                self.grid.shape_2d[0],
+                self.grid.shape_2d[1]
+            )
+
+            real_visibilities, imag_visibilities = self.visibilities_from_image(
+                image_in_2d=image
+            )
+
+            real_transfomed_mapping_matrix[:, source_pixel_1d_index] = real_visibilities
+            imag_transfomed_mapping_matrix[:, source_pixel_1d_index] = imag_visibilities
+
+        return [real_transfomed_mapping_matrix, imag_transfomed_mapping_matrix]
 
 if __name__ == "__main__":
 
