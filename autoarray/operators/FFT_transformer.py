@@ -174,7 +174,8 @@ if __name__ == "__main__":
         ),
         sub_size=1
     )
-    n_pixels_FFT = 2048
+
+    n_pixels_FFT = 2048 # NOTE: I AM NOT SURE HOW LARGE THIS NEEDS TO BE.
     grid_FFT = al.grid.uniform(
         shape_2d=(
             n_pixels_FFT,
@@ -186,7 +187,6 @@ if __name__ == "__main__":
         ),
         sub_size=1
     )
-
 
     # ...
     N = 100
