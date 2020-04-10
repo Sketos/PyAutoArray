@@ -31,7 +31,7 @@ import autolens as al
 
 
 class FINUFFT_Transformer:
-    def __init__(self, uv_wavelengths, grid):
+    def __init__(self, uv_wavelengths, grid, eps=10**-6.0):
 
         self.uv_wavelengths = uv_wavelengths
 
@@ -50,6 +50,8 @@ class FINUFFT_Transformer:
         # NOTE: normalize the uv_wavelengths according to the max wavenumber given the pixel scale of the image
         self.uv_wavelengths_normalized = self.uv_wavelengths / (1.0 / (2.0 * self.grid.pixel_scale * units.arcsec.to(units.rad)))
 
+        self.eps = eps
+
 
     def visibilities_from_image(self, image_in_2d):
 
@@ -62,8 +64,8 @@ class FINUFFT_Transformer:
             self.uv_wavelengths_normalized[:, 0] * np.pi,
             visibilities,
             1,
-            10**-6.0,
-            image_in_2d[:, ::-1] + 1j*np.zeros(shape=image_in_2d.shape)
+            self.eps,
+            image_in_2d[:, ::-1]
         )
         visibilities *= self.shift
 
@@ -130,7 +132,7 @@ class FINUFFT_Transformer:
             self.uv_wavelengths_normalized[:, 0] * np.pi,
             visibilities,
             1,
-            10**-6.0,
+            self.eps,
             mapping_matrix_reshaped
         )
 
